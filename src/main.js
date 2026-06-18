@@ -1,32 +1,53 @@
 import './style.css'
 import { DataStore } from './core/DataStore.js'
 import { SceneManager } from './core/SceneManager.js'
-import { PlanetFactory } from './core/PlanetFactory.js'
+import { PlanetBuilder } from './core/PlanetBuilder.js'
 import { AnimationController } from './core/AnimationController.js'
 import { InfoPanel } from './ui/InfoPanel.js'
+import { ComparePanel } from './ui/ComparePanel.js'
+import { eventBus } from './core/EventBus.js'
+import { AppState } from './core/AppState.js'
 
 class SolarSystemApp {
   constructor() {
     this.container = document.getElementById('app')
     this.sceneManager = null
-    this.planetFactory = null
+    this.planetBuilder = null
     this.animationController = null
     this.infoPanel = null
-    this.currentPlanet = null
-    this.compareTargets = []
+    this.comparePanel = null
+
+    this.searchInput = null
+    this.searchClearBtn = null
     this.searchDropdown = null
+    this._searchDebounceTimer = null
+    this._isComposing = false
+
+    this.playBtn = null
+    this.playIcon = null
+    this.pauseIcon = null
+    this.slider = null
+    this.valueDisplay = null
+    this.resetBtn = null
+
+    this._renderRafId = null
+
     this.init()
   }
 
   init() {
     this.createUI()
+
     this.sceneManager = new SceneManager(this.container)
-    this.planetFactory = new PlanetFactory(this.sceneManager.scene)
-    this.animationController = new AnimationController(this.planetFactory, this.sceneManager)
+    this.planetBuilder = new PlanetBuilder(this.sceneManager.scene)
+    this.animationController = new AnimationController()
     this.infoPanel = new InfoPanel()
+    this.comparePanel = new ComparePanel()
 
     this.createSolarSystem()
-    this.setupEvents()
+    this.setupEventBindings()
+    this.startRenderLoop()
+
     this.animationController.start()
   }
 
@@ -77,8 +98,6 @@ class SolarSystemApp {
     this.searchInput = searchWrapper.querySelector('.search-box__input')
     this.searchClearBtn = searchWrapper.querySelector('.search-box__clear')
     this.searchDropdown = searchWrapper.querySelector('.search-box__dropdown')
-    this._searchDebounceTimer = null
-    this._isComposing = false
 
     this.searchInput.addEventListener('input', (e) => {
       if (this._isComposing) return
@@ -120,6 +139,7 @@ class SolarSystemApp {
   handleSearchInput(query, forceShow = false) {
     const q = query.trim()
     this.searchClearBtn.style.display = q ? 'flex' : 'none'
+    AppState.setSearchQuery(q)
 
     if (!q && !forceShow) {
       this.hideSearchDropdown()
@@ -225,24 +245,22 @@ class SolarSystemApp {
   }
 
   focusOnBody(name) {
-    const bodyObj = this.planetFactory.getPlanetObject(name)
+    const bodyObj = this.planetBuilder.getPlanetObject(name)
     if (!bodyObj) return
 
     const bodyData = DataStore.getBodyByName(name)
-    let targetGroup = bodyObj.group
     let distance = name === 'Sun' ? 18 : 12
 
-    if (bodyObj.data.isMoon) {
-      distance = Math.max(3, bodyObj.data.scaledSize * 12)
+    if (bodyObj.data && bodyObj.data.isMoon) {
+      const scaledSize = bodyObj.group.userData.scaledSize || 1
+      distance = Math.max(3, scaledSize * 12)
     } else if (bodyData) {
-      distance = Math.max(6, bodyData.scaledSize * 10)
+      const scaledSize = bodyObj.group.userData.scaledSize || 1
+      distance = Math.max(6, scaledSize * 10)
     }
 
-    this.currentPlanet = name
-    this.sceneManager.flyToTarget(targetGroup, distance)
-    if (bodyData) {
-      this.infoPanel.show(bodyData)
-    }
+    AppState.selectBody(name)
+    eventBus.emit('camera:fly-to', { targetObject: bodyObj.group, distance })
   }
 
   createTimeControl() {
@@ -276,54 +294,117 @@ class SolarSystemApp {
     this.resetBtn = timeControl.querySelector('.time-control__reset-btn')
 
     this.playBtn.addEventListener('click', () => this.togglePlay())
-    this.slider.addEventListener('input', (e) => this.updateTimeScale(parseFloat(e.target.value)))
+    this.slider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value)
+      AppState.setTimeScale(val)
+    })
     this.resetBtn.addEventListener('click', () => this.resetView())
   }
 
   createSolarSystem() {
     const sunData = DataStore.getSun()
-    this.planetFactory.createSun(sunData)
+    const sunResult = this.planetBuilder.buildSun()
 
     const planets = DataStore.getPlanets()
     planets.forEach(planetData => {
-      const planetGroup = this.planetFactory.createPlanet(planetData)
-
-      const moons = DataStore.getMoonsByParent(planetData.name)
-      if (moons && moons.length > 0) {
-        this.planetFactory.createMoonsForPlanet(moons, planetGroup, planetData)
+      const planetResult = this.planetBuilder.buildPlanet(planetData.name)
+      if (planetResult) {
+        const moonResults = this.planetBuilder.buildMoonsForPlanet(
+          planetData.name,
+          planetResult.group,
+          planetResult.data.scaledSize
+        )
       }
     })
 
-    const clickables = this.planetFactory.getClickablePlanets()
-    clickables.forEach(obj => {
-      this.sceneManager.addClickableObject(obj)
+    const clickables = this.planetBuilder.getAllClickableObjects()
+    this.sceneManager.addClickableObjects(clickables)
+
+    this.animationController.setSun(sunResult.group, sunData.rotationPeriod || 25)
+
+    this.planetBuilder.getAllPlanetObjects().forEach((obj, name) => {
+      this.animationController.addPlanet(name, obj.group)
+    })
+
+    this.planetBuilder.getAllMoonObjects().forEach((obj, name) => {
+      const data = DataStore.getBodyByName(name)
+      const parentName = data ? data.parentName : null
+      if (parentName) {
+        this.animationController.addMoon(name, obj.group, parentName)
+      }
     })
   }
 
-  setupEvents() {
-    this.sceneManager.renderer.domElement.addEventListener('click', (e) => {
-      this.sceneManager.onMouseClick(e, (planetName, planetObject, event) => {
-        const isCtrl = event.ctrlKey || event.metaKey
-        this.handlePlanetClick(planetName, planetObject, isCtrl)
-      })
+  setupEventBindings() {
+    eventBus.on('body:clicked', ({ name, event }) => {
+      const isCtrl = event.ctrlKey || event.metaKey
+      if (isCtrl) {
+        AppState.toggleCompareTarget(name)
+      } else {
+        this.handleBodySelect(name)
+      }
     })
 
-    this.infoPanel.setOnCloseCallback(() => {
-      this.currentPlanet = null
-      this.sceneManager.flyToDefault()
+    eventBus.on('body:selected', (name) => {
+      const bodyData = DataStore.getBodyByName(name)
+      if (bodyData) {
+        this.infoPanel.update(bodyData)
+        this.infoPanel.show()
+      }
     })
 
-    this.infoPanel.setCompareCloseCallback(() => {
-      this.compareTargets = []
+    eventBus.on('body:cleared', () => {
+      this.infoPanel.hide()
+    })
+
+    eventBus.on('compare:ready', (targets) => {
+      const bodies = targets.map(name => DataStore.getBodyByName(name)).filter(Boolean)
+      if (bodies.length === 2) {
+        this.comparePanel.showCompare(bodies[0], bodies[1])
+      }
+    })
+
+    eventBus.on('compare:changed', (targets) => {
+      if (targets.length < 2) {
+        this.comparePanel.hide()
+      }
+    })
+
+    eventBus.on('compare:cleared', () => {
+      this.comparePanel.hide()
+    })
+
+    eventBus.on('time:scale-changed', (scale) => {
+      this.valueDisplay.textContent = scale.toFixed(1) + 'x'
+      this.slider.value = scale
+    })
+
+    eventBus.on('time:paused', () => {
+      this.playIcon.style.display = 'block'
+      this.pauseIcon.style.display = 'none'
+      this.playBtn.classList.remove('time-control__btn--playing')
+    })
+
+    eventBus.on('time:resumed', () => {
+      this.playIcon.style.display = 'none'
+      this.pauseIcon.style.display = 'block'
+      this.playBtn.classList.add('time-control__btn--playing')
+    })
+
+    this.infoPanel.onClose(() => {
+      AppState.clearSelection()
+      eventBus.emit('camera:fly-default')
+    })
+
+    this.comparePanel.onClose(() => {
+      AppState.clearCompare()
     })
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
-        this.infoPanel.hide()
-        this.infoPanel.hideCompare()
-        this.currentPlanet = null
-        this.compareTargets = []
-        this.sceneManager.flyToDefault()
+        AppState.clearSelection()
+        AppState.clearCompare()
+        eventBus.emit('camera:fly-default')
       }
     })
 
@@ -344,74 +425,57 @@ class SolarSystemApp {
     })
   }
 
-  handlePlanetClick(planetName, planetObject, isCtrlCompare = false) {
-    const planetObj = this.planetFactory.getPlanetObject(planetName)
-    if (!planetObj) return
+  handleBodySelect(name) {
+    const bodyObj = this.planetBuilder.getPlanetObject(name)
+    if (!bodyObj) return
 
-    const bodyData = planetObj.data
+    const bodyData = DataStore.getBodyByName(name)
+    let distance = name === 'Sun' ? 18 : 12
 
-    if (isCtrlCompare) {
-      const existingIndex = this.compareTargets.findIndex(t => t.name === planetName)
-      if (existingIndex >= 0) {
-        this.compareTargets.splice(existingIndex, 1)
-      } else {
-        this.compareTargets.push(bodyData)
-        if (this.compareTargets.length > 2) {
-          this.compareTargets.shift()
-        }
-      }
-
-      if (this.compareTargets.length === 2) {
-        this.infoPanel.showCompare(this.compareTargets[0], this.compareTargets[1])
-      } else if (this.compareTargets.length === 0) {
-        this.infoPanel.hideCompare()
-      }
-      return
+    const scaledSize = bodyObj.group.userData.scaledSize || 1
+    if (bodyData && bodyData.isMoon) {
+      distance = Math.max(3, scaledSize * 15)
+    } else {
+      distance = Math.max(8, scaledSize * 10)
     }
 
-    let distance = planetName === 'Sun' ? 18 : 12
-    if (bodyData.isMoon) {
-      distance = Math.max(3, (bodyData.scaledSize || 1) * 15)
-    } else if (bodyData.scaledSize) {
-      distance = Math.max(8, bodyData.scaledSize * 10)
-    }
-
-    this.currentPlanet = planetName
-    this.sceneManager.flyToTarget(planetObject, distance)
-    this.infoPanel.show(bodyData)
+    AppState.selectBody(name)
+    eventBus.emit('camera:fly-to', { targetObject: bodyObj.group, distance })
   }
 
   togglePlay() {
-    const isPaused = this.animationController.togglePause()
-    if (isPaused) {
-      this.playIcon.style.display = 'block'
-      this.pauseIcon.style.display = 'none'
-      this.playBtn.classList.remove('time-control__btn--playing')
-    } else {
-      this.playIcon.style.display = 'none'
-      this.pauseIcon.style.display = 'block'
-      this.playBtn.classList.add('time-control__btn--playing')
-    }
-  }
-
-  updateTimeScale(value) {
-    this.animationController.setTimeScale(value)
-    this.valueDisplay.textContent = value.toFixed(1) + 'x'
+    AppState.togglePaused()
   }
 
   resetView() {
-    this.infoPanel.hide()
-    this.infoPanel.hideCompare()
-    this.currentPlanet = null
-    this.compareTargets = []
-    this.sceneManager.flyToDefault()
+    AppState.clearSelection()
+    AppState.clearCompare()
+    eventBus.emit('camera:fly-default')
+    eventBus.emit('time:reset')
+  }
+
+  startRenderLoop() {
+    const render = () => {
+      this.sceneManager.render()
+      this._renderRafId = requestAnimationFrame(render)
+    }
+    this._renderRafId = requestAnimationFrame(render)
+  }
+
+  stopRenderLoop() {
+    if (this._renderRafId) {
+      cancelAnimationFrame(this._renderRafId)
+      this._renderRafId = null
+    }
   }
 
   dispose() {
+    this.stopRenderLoop()
     this.animationController.dispose()
     this.sceneManager.dispose()
-    this.planetFactory.dispose()
+    this.planetBuilder.dispose()
     this.infoPanel.dispose()
+    this.comparePanel.dispose()
   }
 }
 

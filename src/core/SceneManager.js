@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { eventBus } from './EventBus.js'
 
 export class SceneManager {
   constructor(container) {
@@ -12,10 +13,14 @@ export class SceneManager {
     this.mouse = new THREE.Vector2()
     this.clickableObjects = []
     this.isCameraAnimating = false
+    this.stars = null
+
+    this._eventHandlers = []
 
     this.init()
     this.createStarfield()
     this.setupEventListeners()
+    this._bindEventBus()
   }
 
   init() {
@@ -113,19 +118,20 @@ export class SceneManager {
 
   setupEventListeners() {
     window.addEventListener('resize', () => this.onWindowResize())
+    this.renderer.domElement.addEventListener('click', (e) => this._onCanvasClick(e))
   }
 
-  onWindowResize() {
-    this.camera.aspect = window.innerWidth / window.innerHeight
-    this.camera.updateProjectionMatrix()
-    this.renderer.setSize(window.innerWidth, window.innerHeight)
+  _bindEventBus() {
+    const h1 = eventBus.on('camera:fly-to', ({ targetObject, distance, duration }) => {
+      this.flyToTarget(targetObject, distance, duration)
+    })
+    const h2 = eventBus.on('camera:fly-default', () => {
+      this.flyToDefault()
+    })
+    this._eventHandlers.push(h1, h2)
   }
 
-  addClickableObject(obj) {
-    this.clickableObjects.push(obj)
-  }
-
-  onMouseClick(event, callback) {
+  _onCanvasClick(event) {
     if (this.isCameraAnimating) return
 
     const rect = this.renderer.domElement.getBoundingClientRect()
@@ -141,9 +147,27 @@ export class SceneManager {
         target = target.parent
       }
       if (target.userData.planetName) {
-        callback(target.userData.planetName, target, event)
+        eventBus.emit('body:clicked', {
+          name: target.userData.planetName,
+          object: target,
+          event
+        })
       }
     }
+  }
+
+  onWindowResize() {
+    this.camera.aspect = window.innerWidth / window.innerHeight
+    this.camera.updateProjectionMatrix()
+    this.renderer.setSize(window.innerWidth, window.innerHeight)
+  }
+
+  addClickableObject(obj) {
+    this.clickableObjects.push(obj)
+  }
+
+  addClickableObjects(objs) {
+    objs.forEach(obj => this.clickableObjects.push(obj))
   }
 
   flyToTarget(targetObject, distance = 10, duration = 1500) {
@@ -151,6 +175,7 @@ export class SceneManager {
 
     this.isCameraAnimating = true
     this.controls.enabled = false
+    eventBus.emit('camera:fly-start')
 
     const targetPosition = new THREE.Vector3()
     targetObject.getWorldPosition(targetPosition)
@@ -194,6 +219,7 @@ export class SceneManager {
         this.controls.target.copy(targetPosition)
         this.controls.enabled = true
         this.isCameraAnimating = false
+        eventBus.emit('camera:fly-complete', { target: targetObject })
       }
     }
 
@@ -205,6 +231,7 @@ export class SceneManager {
 
     this.isCameraAnimating = true
     this.controls.enabled = false
+    eventBus.emit('camera:fly-start')
 
     const startPosition = this.camera.position.clone()
     const startQuaternion = this.camera.quaternion.clone()
@@ -235,6 +262,7 @@ export class SceneManager {
         this.controls.minDistance = 5
         this.controls.enabled = true
         this.isCameraAnimating = false
+        eventBus.emit('camera:fly-complete', { target: null })
         if (callback) callback()
       }
     }
@@ -255,6 +283,8 @@ export class SceneManager {
   }
 
   dispose() {
+    this._eventHandlers.forEach(unbind => unbind && unbind())
+    this._eventHandlers = []
     this.renderer.dispose()
     this.controls.dispose()
     window.removeEventListener('resize', () => this.onWindowResize())

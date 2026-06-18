@@ -221,37 +221,15 @@ const SCALE_FACTORS = {
 
 export const DataStore = {
   getPlanets() {
-    return PLANETS_DATA.map(planet => ({
-      ...planet,
-      scaledSize: Math.max(planet.diameter * SCALE_FACTORS.SIZE_SCALE * SCALE_FACTORS.SIZE_MULTIPLIER, 0.3),
-      scaledDistance: planet.distance * SCALE_FACTORS.DISTANCE_SCALE + 5,
-      scaledOrbitalSpeed: (2 * Math.PI) / (planet.orbitalPeriod * SCALE_FACTORS.TIME_SCALE * 60),
-      scaledRotationSpeed: (2 * Math.PI) / (planet.rotationPeriod * SCALE_FACTORS.TIME_SCALE * 60 * 10)
-    }))
+    return PLANETS_DATA.map(p => ({ ...p }))
   },
 
   getSun() {
-    return {
-      ...SUN_DATA,
-      scaledSize: SUN_DATA.diameter * SCALE_FACTORS.SIZE_SCALE * SCALE_FACTORS.SIZE_MULTIPLIER * 0.8
-    }
+    return { ...SUN_DATA }
   },
 
   getMoons() {
-    return MOONS_DATA.map(moon => {
-      const parent = PLANETS_DATA.find(p => p.name === moon.parentName)
-      const parentScaledSize = Math.max(parent.diameter * SCALE_FACTORS.SIZE_SCALE * SCALE_FACTORS.SIZE_MULTIPLIER, 0.3)
-      const scaledDistance = parentScaledSize * 1.8 + moon.distanceFromParent * SCALE_FACTORS.MOON_DISTANCE_SCALE
-
-      return {
-        ...moon,
-        isMoon: true,
-        scaledSize: Math.max(moon.diameter * SCALE_FACTORS.SIZE_SCALE * SCALE_FACTORS.MOON_SIZE_MULTIPLIER, 0.1),
-        scaledDistance,
-        scaledOrbitalSpeed: (2 * Math.PI) / (moon.orbitalPeriod * SCALE_FACTORS.TIME_SCALE * 30),
-        scaledRotationSpeed: (2 * Math.PI) / (moon.rotationPeriod * SCALE_FACTORS.TIME_SCALE * 30 * 5)
-      }
-    })
+    return MOONS_DATA.map(m => ({ ...m, isMoon: true }))
   },
 
   getMoonsByParent(parentName) {
@@ -259,15 +237,21 @@ export const DataStore = {
   },
 
   getPlanetByName(name) {
-    return this.getPlanets().find(p => p.name === name)
+    const raw = PLANETS_DATA.find(p => p.name === name || p.nameCN === name)
+    return raw ? { ...raw } : null
   },
 
   getMoonByName(name) {
-    return this.getMoons().find(m => m.name === name)
+    const raw = MOONS_DATA.find(m => m.name === name || m.nameCN === name)
+    return raw ? { ...raw, isMoon: true } : null
   },
 
   getBodyByName(name) {
-    return this.getPlanetByName(name) || this.getMoonByName(name) || (name === 'Sun' ? this.getSun() : null)
+    return (
+      this.getPlanetByName(name) ||
+      this.getMoonByName(name) ||
+      (name === 'Sun' || name === '太阳' ? this.getSun() : null)
+    )
   },
 
   getAllBodies() {
@@ -284,12 +268,14 @@ export const DataStore = {
     return this.getAllBodies().filter(body =>
       body.name.toLowerCase().includes(q) ||
       body.nameCN.includes(q) ||
-      (body.parentName && (body.parentName.toLowerCase().includes(q) ||
-        PLANETS_DATA.find(p => p.name === body.parentName)?.nameCN.includes(q)))
+      (body.parentName && (
+        body.parentName.toLowerCase().includes(q) ||
+        PLANETS_DATA.find(p => p.name === body.parentName)?.nameCN.includes(q)
+      ))
     )
   },
 
   getScaleFactors() {
-    return SCALE_FACTORS
+    return { ...SCALE_FACTORS }
   }
 }
