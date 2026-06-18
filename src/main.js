@@ -13,6 +13,8 @@ class SolarSystemApp {
     this.animationController = null
     this.infoPanel = null
     this.currentPlanet = null
+    this.compareTargets = []
+    this.searchDropdown = null
     this.init()
   }
 
@@ -35,6 +37,7 @@ class SolarSystemApp {
       <span><kbd>拖拽</kbd> 旋转视角</span>
       <span><kbd>滚轮</kbd> 缩放</span>
       <span><kbd>点击行星</kbd> 查看详情</span>
+      <span><kbd>Ctrl+点击</kbd> 对比模式</span>
       <span><kbd>ESC</kbd> 返回全景</span>
     `
     document.body.appendChild(hint)
@@ -44,7 +47,181 @@ class SolarSystemApp {
     title.textContent = 'SOLAR EXPLORER'
     document.body.appendChild(title)
 
+    this.createSearchBox()
     this.createTimeControl()
+  }
+
+  createSearchBox() {
+    const searchWrapper = document.createElement('div')
+    searchWrapper.className = 'search-box'
+
+    searchWrapper.innerHTML = `
+      <div class="search-box__input-container">
+        <svg class="search-box__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" class="search-box__input" placeholder="搜索行星或卫星..." autocomplete="off">
+        <button class="search-box__clear" aria-label="清除" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="search-box__dropdown"></div>
+    `
+
+    document.body.appendChild(searchWrapper)
+
+    this.searchInput = searchWrapper.querySelector('.search-box__input')
+    this.searchClearBtn = searchWrapper.querySelector('.search-box__clear')
+    this.searchDropdown = searchWrapper.querySelector('.search-box__dropdown')
+
+    this.searchInput.addEventListener('input', (e) => this.handleSearchInput(e.target.value))
+    this.searchInput.addEventListener('focus', (e) => this.handleSearchInput(e.target.value, true))
+    this.searchInput.addEventListener('keydown', (e) => this.handleSearchKeydown(e))
+
+    this.searchClearBtn.addEventListener('click', () => {
+      this.searchInput.value = ''
+      this.searchClearBtn.style.display = 'none'
+      this.hideSearchDropdown()
+      this.searchInput.focus()
+    })
+
+    document.addEventListener('click', (e) => {
+      if (!searchWrapper.contains(e.target)) {
+        this.hideSearchDropdown()
+      }
+    })
+  }
+
+  handleSearchInput(query, forceShow = false) {
+    const q = query.trim()
+    this.searchClearBtn.style.display = q ? 'flex' : 'none'
+
+    if (!q && !forceShow) {
+      this.hideSearchDropdown()
+      return
+    }
+
+    const results = q ? DataStore.searchBodies(q) : DataStore.getAllBodies()
+
+    if (results.length === 0 && !forceShow) {
+      this.hideSearchDropdown()
+      return
+    }
+
+    this.showSearchDropdown(results, q)
+  }
+
+  handleSearchKeydown(e) {
+    if (!this.searchDropdown.classList.contains('search-box__dropdown--visible')) return
+
+    const items = Array.from(this.searchDropdown.querySelectorAll('.search-dropdown__item'))
+    if (items.length === 0) return
+
+    let activeIndex = items.findIndex(item => item.classList.contains('search-dropdown__item--active'))
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      activeIndex = (activeIndex + 1) % items.length
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      activeIndex = activeIndex <= 0 ? items.length - 1 : activeIndex - 1
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (activeIndex >= 0) {
+        items[activeIndex].click()
+      } else {
+        items[0].click()
+      }
+      return
+    } else if (e.key === 'Escape') {
+      this.hideSearchDropdown()
+      return
+    }
+
+    items.forEach((item, i) => {
+      item.classList.toggle('search-dropdown__item--active', i === activeIndex)
+    })
+
+    if (activeIndex >= 0) {
+      items[activeIndex].scrollIntoView({ block: 'nearest' })
+    }
+  }
+
+  showSearchDropdown(results, query) {
+    this.searchDropdown.innerHTML = ''
+
+    if (results.length === 0) {
+      this.searchDropdown.innerHTML = `<div class="search-dropdown__empty">未找到匹配的天体</div>`
+    } else {
+      const fragment = document.createDocumentFragment()
+      results.forEach((body, index) => {
+        const item = document.createElement('div')
+        item.className = 'search-dropdown__item'
+        if (index === 0) item.classList.add('search-dropdown__item--active')
+
+        const typeLabel = body.isMoon ? '卫星' : (body.name === 'Sun' ? '恒星' : '行星')
+        const typeClass = body.isMoon ? 'type--moon' : (body.name === 'Sun' ? 'type--sun' : 'type--planet')
+
+        const highlight = (text) => {
+          if (!query) return text
+          const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+          return text.replace(regex, '<mark>$1</mark>')
+        }
+
+        item.innerHTML = `
+          <span class="search-dropdown__dot" style="background-color:#${body.color.toString(16).padStart(6, '0')}"></span>
+          <div class="search-dropdown__info">
+            <div class="search-dropdown__name">${highlight(body.nameCN)} <span class="search-dropdown__en">${highlight(body.name)}</span></div>
+            <div class="search-dropdown__meta">
+              <span class="search-dropdown__type ${typeClass}">${typeLabel}</span>
+              ${body.isMoon ? `<span class="search-dropdown__parent">环绕 ${body.parentName}</span>` : ''}
+            </div>
+          </div>
+        `
+
+        item.addEventListener('click', () => {
+          this.focusOnBody(body.name)
+          this.searchInput.value = body.nameCN
+          this.searchClearBtn.style.display = 'flex'
+          this.hideSearchDropdown()
+          this.searchInput.blur()
+        })
+
+        fragment.appendChild(item)
+      })
+      this.searchDropdown.appendChild(fragment)
+    }
+
+    this.searchDropdown.classList.add('search-box__dropdown--visible')
+  }
+
+  hideSearchDropdown() {
+    this.searchDropdown.classList.remove('search-box__dropdown--visible')
+  }
+
+  focusOnBody(name) {
+    const bodyObj = this.planetFactory.getPlanetObject(name)
+    if (!bodyObj) return
+
+    const bodyData = DataStore.getBodyByName(name)
+    let targetGroup = bodyObj.group
+    let distance = name === 'Sun' ? 18 : 12
+
+    if (bodyObj.data.isMoon) {
+      distance = Math.max(3, bodyObj.data.scaledSize * 12)
+    } else if (bodyData) {
+      distance = Math.max(6, bodyData.scaledSize * 10)
+    }
+
+    this.currentPlanet = name
+    this.sceneManager.flyToTarget(targetGroup, distance)
+    if (bodyData) {
+      this.infoPanel.show(bodyData)
+    }
   }
 
   createTimeControl() {
@@ -88,7 +265,12 @@ class SolarSystemApp {
 
     const planets = DataStore.getPlanets()
     planets.forEach(planetData => {
-      this.planetFactory.createPlanet(planetData)
+      const planetGroup = this.planetFactory.createPlanet(planetData)
+
+      const moons = DataStore.getMoonsByParent(planetData.name)
+      if (moons && moons.length > 0) {
+        this.planetFactory.createMoonsForPlanet(moons, planetGroup, planetData)
+      }
     })
 
     const clickables = this.planetFactory.getClickablePlanets()
@@ -99,8 +281,9 @@ class SolarSystemApp {
 
   setupEvents() {
     this.sceneManager.renderer.domElement.addEventListener('click', (e) => {
-      this.sceneManager.onMouseClick(e, (planetName, planetObject) => {
-        this.handlePlanetClick(planetName, planetObject)
+      this.sceneManager.onMouseClick(e, (planetName, planetObject, event) => {
+        const isCtrl = event.ctrlKey || event.metaKey
+        this.handlePlanetClick(planetName, planetObject, isCtrl)
       })
     })
 
@@ -109,10 +292,16 @@ class SolarSystemApp {
       this.sceneManager.flyToDefault()
     })
 
+    this.infoPanel.setCompareCloseCallback(() => {
+      this.compareTargets = []
+    })
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         this.infoPanel.hide()
+        this.infoPanel.hideCompare()
         this.currentPlanet = null
+        this.compareTargets = []
         this.sceneManager.flyToDefault()
       }
     })
@@ -123,15 +312,52 @@ class SolarSystemApp {
         this.togglePlay()
       }
     })
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        this.searchInput.focus()
+        this.searchInput.select()
+        this.handleSearchInput(this.searchInput.value, true)
+      }
+    })
   }
 
-  handlePlanetClick(planetName, planetObject) {
+  handlePlanetClick(planetName, planetObject, isCtrlCompare = false) {
     const planetObj = this.planetFactory.getPlanetObject(planetName)
-    if (planetObj) {
-      this.currentPlanet = planetName
-      this.sceneManager.flyToTarget(planetObject, 12)
-      this.infoPanel.show(planetObj.data)
+    if (!planetObj) return
+
+    const bodyData = planetObj.data
+
+    if (isCtrlCompare) {
+      const existingIndex = this.compareTargets.findIndex(t => t.name === planetName)
+      if (existingIndex >= 0) {
+        this.compareTargets.splice(existingIndex, 1)
+      } else {
+        this.compareTargets.push(bodyData)
+        if (this.compareTargets.length > 2) {
+          this.compareTargets.shift()
+        }
+      }
+
+      if (this.compareTargets.length === 2) {
+        this.infoPanel.showCompare(this.compareTargets[0], this.compareTargets[1])
+      } else if (this.compareTargets.length === 0) {
+        this.infoPanel.hideCompare()
+      }
+      return
     }
+
+    let distance = planetName === 'Sun' ? 18 : 12
+    if (bodyData.isMoon) {
+      distance = Math.max(3, (bodyData.scaledSize || 1) * 15)
+    } else if (bodyData.scaledSize) {
+      distance = Math.max(8, bodyData.scaledSize * 10)
+    }
+
+    this.currentPlanet = planetName
+    this.sceneManager.flyToTarget(planetObject, distance)
+    this.infoPanel.show(bodyData)
   }
 
   togglePlay() {
@@ -154,7 +380,9 @@ class SolarSystemApp {
 
   resetView() {
     this.infoPanel.hide()
+    this.infoPanel.hideCompare()
     this.currentPlanet = null
+    this.compareTargets = []
     this.sceneManager.flyToDefault()
   }
 
@@ -167,6 +395,8 @@ class SolarSystemApp {
 }
 
 const app = new SolarSystemApp()
+
+window.__solarApp = app
 
 window.addEventListener('beforeunload', () => {
   app.dispose()

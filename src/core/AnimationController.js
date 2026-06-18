@@ -46,6 +46,7 @@ export class AnimationController {
     const delta = this.clock.getDelta() * this.timeScale
 
     const planetObjects = this.planetFactory.getPlanetObjects()
+    const moonObjects = this.planetFactory.getMoonObjects()
 
     planetObjects.forEach((obj, name) => {
       if (name === 'Sun') {
@@ -63,6 +64,14 @@ export class AnimationController {
         const clouds = obj.group.children[1]
         clouds.rotation.y += obj.data.scaledRotationSpeed * delta * 1.2
       }
+    })
+
+    moonObjects.forEach((obj) => {
+      obj.angle += obj.data.scaledOrbitalSpeed * delta
+      obj.group.position.x = obj.semiMajorAxis * Math.cos(obj.angle)
+      obj.group.position.z = obj.semiMinorAxis * Math.sin(obj.angle)
+
+      obj.mesh.rotation.y += obj.data.scaledRotationSpeed * delta
     })
   }
 

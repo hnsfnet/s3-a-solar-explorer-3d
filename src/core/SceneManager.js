@@ -141,7 +141,7 @@ export class SceneManager {
         target = target.parent
       }
       if (target.userData.planetName) {
-        callback(target.userData.planetName, target)
+        callback(target.userData.planetName, target, event)
       }
     }
   }

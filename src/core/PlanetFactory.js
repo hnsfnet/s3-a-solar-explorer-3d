@@ -4,6 +4,7 @@ export class PlanetFactory {
   constructor(scene) {
     this.scene = scene
     this.planetObjects = new Map()
+    this.moonObjects = new Map()
   }
 
   createSun(sunData) {
@@ -103,6 +104,77 @@ export class PlanetFactory {
     return planetGroup
   }
 
+  createMoon(moonData, parentPlanetGroup, parentPlanetData) {
+    const moonGroup = new THREE.Group()
+    moonGroup.userData.planetName = moonData.name
+    moonGroup.userData.scaledSize = moonData.scaledSize
+    moonGroup.userData.isMoon = true
+
+    const geometry = new THREE.SphereGeometry(moonData.scaledSize, 32, 32)
+    const material = new THREE.MeshStandardMaterial({
+      color: moonData.color,
+      roughness: 0.95,
+      metalness: 0.02
+    })
+    const moonMesh = new THREE.Mesh(geometry, material)
+    moonGroup.add(moonMesh)
+
+    const orbit = this.createMoonOrbit(moonData)
+    parentPlanetGroup.add(orbit)
+
+    const a = moonData.scaledDistance
+    const b = a * Math.sqrt(1 - moonData.eccentricity * moonData.eccentricity)
+    const initialAngle = Math.random() * Math.PI * 2
+    moonGroup.position.x = a * Math.cos(initialAngle)
+    moonGroup.position.z = b * Math.sin(initialAngle)
+
+    parentPlanetGroup.add(moonGroup)
+
+    this.moonObjects.set(moonData.name, {
+      group: moonGroup,
+      mesh: moonMesh,
+      data: moonData,
+      angle: initialAngle,
+      semiMajorAxis: a,
+      semiMinorAxis: b,
+      parentGroup: parentPlanetGroup,
+      parentPlanetData: parentPlanetData
+    })
+
+    return moonGroup
+  }
+
+  createMoonsForPlanet(moons, parentPlanetGroup, parentPlanetData) {
+    moons.forEach(moonData => {
+      this.createMoon(moonData, parentPlanetGroup, parentPlanetData)
+    })
+  }
+
+  createMoonOrbit(moonData) {
+    const a = moonData.scaledDistance
+    const b = a * Math.sqrt(1 - moonData.eccentricity * moonData.eccentricity)
+    const segments = 128
+    const positions = new Float32Array((segments + 1) * 3)
+
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI * 2
+      positions[i * 3] = a * Math.cos(angle)
+      positions[i * 3 + 1] = 0
+      positions[i * 3 + 2] = b * Math.sin(angle)
+    }
+
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+
+    const material = new THREE.LineBasicMaterial({
+      color: 0x666688,
+      transparent: true,
+      opacity: 0.3
+    })
+
+    return new THREE.Line(geometry, material)
+  }
+
   createSaturnRings(planetSize) {
     const ringGroup = new THREE.Group()
 
@@ -178,8 +250,19 @@ export class PlanetFactory {
     return this.planetObjects
   }
 
+  getMoonObjects() {
+    return this.moonObjects
+  }
+
+  getAllObjects() {
+    const all = new Map()
+    this.planetObjects.forEach((v, k) => all.set(k, v))
+    this.moonObjects.forEach((v, k) => all.set(k, v))
+    return all
+  }
+
   getPlanetObject(name) {
-    return this.planetObjects.get(name)
+    return this.planetObjects.get(name) || this.moonObjects.get(name)
   }
 
   getClickablePlanets() {
@@ -187,11 +270,14 @@ export class PlanetFactory {
     this.planetObjects.forEach((obj) => {
       clickables.push(obj.group)
     })
+    this.moonObjects.forEach((obj) => {
+      clickables.push(obj.group)
+    })
     return clickables
   }
 
   dispose() {
-    this.planetObjects.forEach((obj) => {
+    const disposeObject = (obj) => {
       obj.group.traverse((child) => {
         if (child.geometry) child.geometry.dispose()
         if (child.material) {
@@ -202,7 +288,10 @@ export class PlanetFactory {
           }
         }
       })
-    })
+    }
+    this.planetObjects.forEach(disposeObject)
     this.planetObjects.clear()
+    this.moonObjects.forEach(disposeObject)
+    this.moonObjects.clear()
   }
 }
