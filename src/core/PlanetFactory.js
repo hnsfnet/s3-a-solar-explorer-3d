@@ -86,9 +86,11 @@ export class PlanetFactory {
     this.scene.add(orbit)
 
     const a = planetData.scaledDistance
-    const b = a * Math.sqrt(1 - planetData.eccentricity * planetData.eccentricity)
+    const e = planetData.eccentricity
+    const b = a * Math.sqrt(1 - e * e)
+    const c = a * e
     const initialAngle = Math.random() * Math.PI * 2
-    planetGroup.position.x = a * Math.cos(initialAngle)
+    planetGroup.position.x = a * Math.cos(initialAngle) + c
     planetGroup.position.z = b * Math.sin(initialAngle)
 
     this.scene.add(planetGroup)
@@ -98,7 +100,8 @@ export class PlanetFactory {
       data: planetData,
       angle: initialAngle,
       semiMajorAxis: a,
-      semiMinorAxis: b
+      semiMinorAxis: b,
+      focalDistance: c
     })
 
     return planetGroup
@@ -123,9 +126,11 @@ export class PlanetFactory {
     parentPlanetGroup.add(orbit)
 
     const a = moonData.scaledDistance
-    const b = a * Math.sqrt(1 - moonData.eccentricity * moonData.eccentricity)
+    const e = moonData.eccentricity
+    const b = a * Math.sqrt(1 - e * e)
+    const c = a * e
     const initialAngle = Math.random() * Math.PI * 2
-    moonGroup.position.x = a * Math.cos(initialAngle)
+    moonGroup.position.x = a * Math.cos(initialAngle) + c
     moonGroup.position.z = b * Math.sin(initialAngle)
 
     parentPlanetGroup.add(moonGroup)
@@ -137,6 +142,7 @@ export class PlanetFactory {
       angle: initialAngle,
       semiMajorAxis: a,
       semiMinorAxis: b,
+      focalDistance: c,
       parentGroup: parentPlanetGroup,
       parentPlanetData: parentPlanetData
     })
@@ -152,13 +158,15 @@ export class PlanetFactory {
 
   createMoonOrbit(moonData) {
     const a = moonData.scaledDistance
-    const b = a * Math.sqrt(1 - moonData.eccentricity * moonData.eccentricity)
+    const e = moonData.eccentricity
+    const b = a * Math.sqrt(1 - e * e)
+    const c = a * e
     const segments = 128
     const positions = new Float32Array((segments + 1) * 3)
 
     for (let i = 0; i <= segments; i++) {
       const angle = (i / segments) * Math.PI * 2
-      positions[i * 3] = a * Math.cos(angle)
+      positions[i * 3] = a * Math.cos(angle) + c
       positions[i * 3 + 1] = 0
       positions[i * 3 + 2] = b * Math.sin(angle)
     }
@@ -223,13 +231,15 @@ export class PlanetFactory {
 
   createOrbit(planetData) {
     const a = planetData.scaledDistance
-    const b = a * Math.sqrt(1 - planetData.eccentricity * planetData.eccentricity)
+    const e = planetData.eccentricity
+    const b = a * Math.sqrt(1 - e * e)
+    const c = a * e
     const segments = 256
     const positions = new Float32Array((segments + 1) * 3)
 
     for (let i = 0; i <= segments; i++) {
       const angle = (i / segments) * Math.PI * 2
-      positions[i * 3] = a * Math.cos(angle)
+      positions[i * 3] = a * Math.cos(angle) + c
       positions[i * 3 + 1] = 0
       positions[i * 3 + 2] = b * Math.sin(angle)
     }

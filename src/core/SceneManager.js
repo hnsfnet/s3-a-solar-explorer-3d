@@ -159,8 +159,13 @@ export class SceneManager {
       .subVectors(this.camera.position, targetPosition)
       .normalize()
 
+    const targetSize = targetObject.userData.scaledSize || 1
+    const minSafeDistance = targetSize * 4 + 1
+    const desiredSurfaceDistance = Math.max(distance, minSafeDistance)
+    const centerDistance = desiredSurfaceDistance + targetSize
+
     const desiredPosition = new THREE.Vector3()
-      .addVectors(targetPosition, direction.multiplyScalar(distance + targetObject.userData.scaledSize * 3))
+      .addVectors(targetPosition, direction.multiplyScalar(centerDistance))
 
     const startPosition = this.camera.position.clone()
     const startQuaternion = this.camera.quaternion.clone()
@@ -170,6 +175,8 @@ export class SceneManager {
     tempCamera.position.copy(desiredPosition)
     tempCamera.lookAt(targetPosition)
     lookAtQuaternion.copy(tempCamera.quaternion)
+
+    this.controls.minDistance = targetSize * 1.5 + 0.5
 
     const startTime = performance.now()
 
@@ -225,6 +232,7 @@ export class SceneManager {
         requestAnimationFrame(animate)
       } else {
         this.controls.target.copy(desiredTarget)
+        this.controls.minDistance = 5
         this.controls.enabled = true
         this.isCameraAnimating = false
         if (callback) callback()

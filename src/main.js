@@ -77,8 +77,20 @@ class SolarSystemApp {
     this.searchInput = searchWrapper.querySelector('.search-box__input')
     this.searchClearBtn = searchWrapper.querySelector('.search-box__clear')
     this.searchDropdown = searchWrapper.querySelector('.search-box__dropdown')
+    this._searchDebounceTimer = null
+    this._isComposing = false
 
-    this.searchInput.addEventListener('input', (e) => this.handleSearchInput(e.target.value))
+    this.searchInput.addEventListener('input', (e) => {
+      if (this._isComposing) return
+      this._debounceSearch(e.target.value)
+    })
+    this.searchInput.addEventListener('compositionstart', () => {
+      this._isComposing = true
+    })
+    this.searchInput.addEventListener('compositionend', (e) => {
+      this._isComposing = false
+      this._debounceSearch(e.target.value)
+    })
     this.searchInput.addEventListener('focus', (e) => this.handleSearchInput(e.target.value, true))
     this.searchInput.addEventListener('keydown', (e) => this.handleSearchKeydown(e))
 
@@ -94,6 +106,15 @@ class SolarSystemApp {
         this.hideSearchDropdown()
       }
     })
+  }
+
+  _debounceSearch(query, forceShow = false) {
+    if (this._searchDebounceTimer) {
+      clearTimeout(this._searchDebounceTimer)
+    }
+    this._searchDebounceTimer = setTimeout(() => {
+      this.handleSearchInput(query, forceShow)
+    }, 200)
   }
 
   handleSearchInput(query, forceShow = false) {
