@@ -19,8 +19,7 @@ export class UIComponent {
     this.element = document.createElement('div')
   }
 
-  _attachEvents() {
-  }
+  _attachEvents() {}
 
   show(data) {
     if (this.isVisible) return
@@ -30,14 +29,14 @@ export class UIComponent {
     }
     this.element.classList.add(this._visibleClass)
     this.isVisible = true
-    this._onShowCallbacks.forEach(cb => cb(data || this._data))
+    this._onShowCallbacks.forEach((cb) => cb(data || this._data))
   }
 
   hide() {
     if (!this.isVisible) return
     this.element.classList.remove(this._visibleClass)
     this.isVisible = false
-    this._onHideCallbacks.forEach(cb => cb())
+    this._onHideCallbacks.forEach((cb) => cb())
   }
 
   toggle(data) {
@@ -53,8 +52,7 @@ export class UIComponent {
     this.render(this._data)
   }
 
-  render(data) {
-  }
+  render(_data) {}
 
   getData() {
     return this._data
@@ -85,7 +83,7 @@ export class UIComponent {
   }
 
   _triggerClose() {
-    this._onCloseCallbacks.forEach(cb => cb())
+    this._onCloseCallbacks.forEach((cb) => cb())
   }
 
   dispose() {

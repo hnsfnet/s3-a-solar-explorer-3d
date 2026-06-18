@@ -162,7 +162,9 @@ class SolarSystemApp {
     const items = Array.from(this.searchDropdown.querySelectorAll('.search-dropdown__item'))
     if (items.length === 0) return
 
-    let activeIndex = items.findIndex(item => item.classList.contains('search-dropdown__item--active'))
+    let activeIndex = items.findIndex((item) =>
+      item.classList.contains('search-dropdown__item--active'),
+    )
 
     if (e.key === 'ArrowDown') {
       e.preventDefault()
@@ -204,8 +206,12 @@ class SolarSystemApp {
         item.className = 'search-dropdown__item'
         if (index === 0) item.classList.add('search-dropdown__item--active')
 
-        const typeLabel = body.isMoon ? '卫星' : (body.name === 'Sun' ? '恒星' : '行星')
-        const typeClass = body.isMoon ? 'type--moon' : (body.name === 'Sun' ? 'type--sun' : 'type--planet')
+        const typeLabel = body.isMoon ? '卫星' : body.name === 'Sun' ? '恒星' : '行星'
+        const typeClass = body.isMoon
+          ? 'type--moon'
+          : body.name === 'Sun'
+            ? 'type--sun'
+            : 'type--planet'
 
         const highlight = (text) => {
           if (!query) return text
@@ -306,13 +312,13 @@ class SolarSystemApp {
     const sunResult = this.planetBuilder.buildSun()
 
     const planets = DataStore.getPlanets()
-    planets.forEach(planetData => {
+    planets.forEach((planetData) => {
       const planetResult = this.planetBuilder.buildPlanet(planetData.name)
       if (planetResult) {
-        const moonResults = this.planetBuilder.buildMoonsForPlanet(
+        this.planetBuilder.buildMoonsForPlanet(
           planetData.name,
           planetResult.group,
-          planetResult.data.scaledSize
+          planetResult.data.scaledSize,
         )
       }
     })
@@ -358,7 +364,7 @@ class SolarSystemApp {
     })
 
     eventBus.on('compare:ready', (targets) => {
-      const bodies = targets.map(name => DataStore.getBodyByName(name)).filter(Boolean)
+      const bodies = targets.map((name) => DataStore.getBodyByName(name)).filter(Boolean)
       if (bodies.length === 2) {
         this.comparePanel.showCompare(bodies[0], bodies[1])
       }
@@ -375,7 +381,7 @@ class SolarSystemApp {
     })
 
     eventBus.on('time:scale-changed', (scale) => {
-      this.valueDisplay.textContent = scale.toFixed(1) + 'x'
+      this.valueDisplay.textContent = `${scale.toFixed(1)}x`
       this.slider.value = scale
     })
 
@@ -486,3 +492,5 @@ window.__solarApp = app
 window.addEventListener('beforeunload', () => {
   app.dispose()
 })
+
+export { SolarSystemApp }

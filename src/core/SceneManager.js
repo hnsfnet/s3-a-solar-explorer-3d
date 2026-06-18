@@ -28,13 +28,20 @@ export class SceneManager {
     this.scene.background = new THREE.Color(0x0a0a1a)
     this.scene.fog = new THREE.FogExp2(0x0a0a1a, 0.0008)
 
+    const fov = Number(import.meta.env.VITE_CAMERA_FOV) || 60
+    const near = Number(import.meta.env.VITE_CAMERA_NEAR) || 0.1
+    const far = Number(import.meta.env.VITE_CAMERA_FAR) || 5000
+    const camX = Number(import.meta.env.VITE_CAMERA_INITIAL_X) || 60
+    const camY = Number(import.meta.env.VITE_CAMERA_INITIAL_Y) || 40
+    const camZ = Number(import.meta.env.VITE_CAMERA_INITIAL_Z) || 60
+
     this.camera = new THREE.PerspectiveCamera(
-      60,
+      fov,
       window.innerWidth / window.innerHeight,
-      0.1,
-      5000
+      near,
+      far,
     )
-    this.camera.position.set(60, 40, 60)
+    this.camera.position.set(camX, camY, camZ)
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true })
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -109,7 +116,7 @@ export class SceneManager {
       vertexColors: true,
       transparent: true,
       opacity: 0.9,
-      sizeAttenuation: true
+      sizeAttenuation: true,
     })
 
     this.stars = new THREE.Points(starsGeometry, starsMaterial)
@@ -150,7 +157,7 @@ export class SceneManager {
         eventBus.emit('body:clicked', {
           name: target.userData.planetName,
           object: target,
-          event
+          event,
         })
       }
     }
@@ -167,7 +174,7 @@ export class SceneManager {
   }
 
   addClickableObjects(objs) {
-    objs.forEach(obj => this.clickableObjects.push(obj))
+    objs.forEach((obj) => this.clickableObjects.push(obj))
   }
 
   flyToTarget(targetObject, distance = 10, duration = 1500) {
@@ -189,8 +196,10 @@ export class SceneManager {
     const desiredSurfaceDistance = Math.max(distance, minSafeDistance)
     const centerDistance = desiredSurfaceDistance + targetSize
 
-    const desiredPosition = new THREE.Vector3()
-      .addVectors(targetPosition, direction.multiplyScalar(centerDistance))
+    const desiredPosition = new THREE.Vector3().addVectors(
+      targetPosition,
+      direction.multiplyScalar(centerDistance),
+    )
 
     const startPosition = this.camera.position.clone()
     const startQuaternion = this.camera.quaternion.clone()
@@ -235,7 +244,11 @@ export class SceneManager {
 
     const startPosition = this.camera.position.clone()
     const startQuaternion = this.camera.quaternion.clone()
-    const desiredPosition = new THREE.Vector3(60, 40, 60)
+    const desiredPosition = new THREE.Vector3(
+      Number(import.meta.env.VITE_CAMERA_INITIAL_X) || 60,
+      Number(import.meta.env.VITE_CAMERA_INITIAL_Y) || 40,
+      Number(import.meta.env.VITE_CAMERA_INITIAL_Z) || 60,
+    )
     const desiredTarget = new THREE.Vector3(0, 0, 0)
 
     const lookAtQuaternion = new THREE.Quaternion()
@@ -271,7 +284,7 @@ export class SceneManager {
   }
 
   easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+    return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
   }
 
   render() {
@@ -283,7 +296,7 @@ export class SceneManager {
   }
 
   dispose() {
-    this._eventHandlers.forEach(unbind => unbind && unbind())
+    this._eventHandlers.forEach((unbind) => unbind && unbind())
     this._eventHandlers = []
     this.renderer.dispose()
     this.controls.dispose()

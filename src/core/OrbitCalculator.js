@@ -40,12 +40,12 @@ export class OrbitCalculator {
 
   getAllPlanetOrbitParams() {
     const planets = DataStore.getPlanets()
-    return planets.map(p => this.getPlanetOrbitParams(p.name))
+    return planets.map((p) => this.getPlanetOrbitParams(p.name))
   }
 
   getMoonsOrbitParamsForParent(parentName, parentScaledSize) {
     const moons = DataStore.getMoonsByParent(parentName)
-    return moons.map(m => this.getMoonOrbitParams(m.name, parentScaledSize))
+    return moons.map((m) => this.getMoonOrbitParams(m.name, parentScaledSize))
   }
 
   _calculatePlanetParams(planet) {
@@ -56,8 +56,10 @@ export class OrbitCalculator {
     const semiMajorAxis = scaledDistance
     const semiMinorAxis = scaledDistance * Math.sqrt(1 - planet.eccentricity * planet.eccentricity)
     const focalDistance = scaledDistance * planet.eccentricity
-    const scaledOrbitalSpeed = (2 * Math.PI) / (planet.orbitalPeriod * TIME_SCALE * PLANET_TIME_BASE)
-    const scaledRotationSpeed = (2 * Math.PI) / (planet.rotationPeriod * TIME_SCALE * PLANET_TIME_BASE * 10)
+    const scaledOrbitalSpeed =
+      (2 * Math.PI) / (planet.orbitalPeriod * TIME_SCALE * PLANET_TIME_BASE)
+    const scaledRotationSpeed =
+      (2 * Math.PI) / (planet.rotationPeriod * TIME_SCALE * PLANET_TIME_BASE * 10)
 
     return {
       ...planet,
@@ -67,7 +69,7 @@ export class OrbitCalculator {
       semiMinorAxis,
       focalDistance,
       scaledOrbitalSpeed,
-      scaledRotationSpeed
+      scaledRotationSpeed,
     }
   }
 
@@ -80,7 +82,8 @@ export class OrbitCalculator {
     const semiMinorAxis = scaledDistance * Math.sqrt(1 - moon.eccentricity * moon.eccentricity)
     const focalDistance = scaledDistance * moon.eccentricity
     const scaledOrbitalSpeed = (2 * Math.PI) / (moon.orbitalPeriod * TIME_SCALE * MOON_TIME_BASE)
-    const scaledRotationSpeed = (2 * Math.PI) / (moon.rotationPeriod * TIME_SCALE * MOON_TIME_BASE * MOON_ROTATION_DIVISOR)
+    const scaledRotationSpeed =
+      (2 * Math.PI) / (moon.rotationPeriod * TIME_SCALE * MOON_TIME_BASE * MOON_ROTATION_DIVISOR)
 
     return {
       ...moon,
@@ -90,17 +93,16 @@ export class OrbitCalculator {
       semiMinorAxis,
       focalDistance,
       scaledOrbitalSpeed,
-      scaledRotationSpeed
+      scaledRotationSpeed,
     }
   }
 
   getSunParams() {
     const sun = DataStore.getSun()
-    const { SIZE_SCALE, SIZE_MULTIPLIER } = this.scaleFactors
-    const SUN_SIZE_RATIO = 0.15
+    const { SIZE_SCALE, SIZE_MULTIPLIER, SUN_SIZE_RATIO } = this.scaleFactors
     return {
       ...sun,
-      scaledSize: sun.diameter * SIZE_SCALE * SIZE_MULTIPLIER * SUN_SIZE_RATIO
+      scaledSize: sun.diameter * SIZE_SCALE * SIZE_MULTIPLIER * SUN_SIZE_RATIO,
     }
   }
 
@@ -108,7 +110,7 @@ export class OrbitCalculator {
     return {
       x: params.semiMajorAxis * Math.cos(angle) + params.focalDistance,
       y: 0,
-      z: params.semiMinorAxis * Math.sin(angle)
+      z: params.semiMinorAxis * Math.sin(angle),
     }
   }
 

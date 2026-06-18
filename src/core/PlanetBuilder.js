@@ -29,7 +29,7 @@ export class PlanetBuilder {
       color: 0xffaa00,
       transparent: true,
       opacity: 0.3,
-      side: THREE.BackSide
+      side: THREE.BackSide,
     })
     const glowMesh = new THREE.Mesh(glowGeom, glowMat)
     sunGroup.add(glowMesh)
@@ -39,7 +39,7 @@ export class PlanetBuilder {
       color: 0xffcc00,
       transparent: true,
       opacity: 0.15,
-      side: THREE.BackSide
+      side: THREE.BackSide,
     })
     const coronaMesh = new THREE.Mesh(coronaGeom, coronaMat)
     sunGroup.add(coronaMesh)
@@ -62,7 +62,7 @@ export class PlanetBuilder {
     const material = new THREE.MeshStandardMaterial({
       color: params.color,
       roughness: 0.85,
-      metalness: 0.05
+      metalness: 0.05,
     })
     const planetMesh = new THREE.Mesh(geometry, material)
     planetGroup.add(planetMesh)
@@ -74,7 +74,7 @@ export class PlanetBuilder {
         transparent: true,
         opacity: 0.35,
         roughness: 1,
-        metalness: 0
+        metalness: 0,
       })
       const cloudsMesh = new THREE.Mesh(cloudsGeom, cloudsMat)
       planetGroup.add(cloudsMesh)
@@ -93,7 +93,7 @@ export class PlanetBuilder {
     this.planetGroups.set(params.name, {
       group: planetGroup,
       mesh: planetMesh,
-      data: params
+      data: params,
     })
 
     return { group: planetGroup, mesh: planetMesh, data: params }
@@ -112,7 +112,7 @@ export class PlanetBuilder {
     const material = new THREE.MeshStandardMaterial({
       color: params.color,
       roughness: 0.95,
-      metalness: 0.02
+      metalness: 0.02,
     })
     const moonMesh = new THREE.Mesh(geometry, material)
     moonGroup.add(moonMesh)
@@ -126,7 +126,7 @@ export class PlanetBuilder {
       group: moonGroup,
       mesh: moonMesh,
       data: params,
-      parentGroup: parentPlanetGroup
+      parentGroup: parentPlanetGroup,
     })
 
     return { group: moonGroup, mesh: moonMesh, data: params }
@@ -135,7 +135,7 @@ export class PlanetBuilder {
   buildMoonsForPlanet(parentName, parentPlanetGroup, parentScaledSize) {
     const moons = DataStore.getMoonsByParent(parentName)
     const results = []
-    moons.forEach(moon => {
+    moons.forEach((moon) => {
       const result = this.buildMoon(moon.name, parentPlanetGroup, parentScaledSize)
       if (result) results.push(result)
     })
@@ -144,7 +144,7 @@ export class PlanetBuilder {
 
   buildAllPlanets() {
     const planets = DataStore.getPlanets()
-    planets.forEach(p => this.buildPlanet(p.name))
+    planets.forEach((p) => this.buildPlanet(p.name))
   }
 
   _buildSaturnRings(planetSize) {
@@ -156,7 +156,7 @@ export class PlanetBuilder {
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.6,
-      roughness: 0.9
+      roughness: 0.9,
     })
     const innerRing = new THREE.Mesh(innerRingGeom, innerRingMat)
     innerRing.rotation.x = -Math.PI / 2.5
@@ -168,7 +168,7 @@ export class PlanetBuilder {
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.7,
-      roughness: 0.85
+      roughness: 0.85,
     })
     const mainRing = new THREE.Mesh(mainRingGeom, mainRingMat)
     mainRing.rotation.x = -Math.PI / 2.5
@@ -180,7 +180,7 @@ export class PlanetBuilder {
       side: THREE.DoubleSide,
       transparent: true,
       opacity: 0.3,
-      roughness: 0.95
+      roughness: 0.95,
     })
     const outerRing = new THREE.Mesh(outerRingGeom, outerRingMat)
     outerRing.rotation.x = -Math.PI / 2.5
@@ -197,7 +197,7 @@ export class PlanetBuilder {
     const material = new THREE.LineBasicMaterial({
       color,
       transparent: true,
-      opacity
+      opacity,
     })
 
     return new THREE.Line(geometry, material)
@@ -220,18 +220,18 @@ export class PlanetBuilder {
   getAllClickableObjects() {
     const clickables = []
     if (this.sunGroup) clickables.push(this.sunGroup)
-    this.planetGroups.forEach(obj => clickables.push(obj.group))
-    this.moonGroups.forEach(obj => clickables.push(obj.group))
+    this.planetGroups.forEach((obj) => clickables.push(obj.group))
+    this.moonGroups.forEach((obj) => clickables.push(obj.group))
     return clickables
   }
 
   dispose() {
     const disposeMesh = (obj) => {
-      obj.traverse?.(child => {
+      obj.traverse?.((child) => {
         if (child.geometry) child.geometry.dispose()
         if (child.material) {
           if (Array.isArray(child.material)) {
-            child.material.forEach(m => m.dispose())
+            child.material.forEach((m) => m.dispose())
           } else {
             child.material.dispose()
           }
@@ -256,7 +256,7 @@ export class PlanetBuilder {
     })
     this.moonGroups.clear()
 
-    this.orbitLines.forEach(line => {
+    this.orbitLines.forEach((line) => {
       line.geometry.dispose()
       line.material.dispose()
       this.scene.remove(line)

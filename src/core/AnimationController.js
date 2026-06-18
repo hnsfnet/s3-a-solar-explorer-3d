@@ -41,7 +41,7 @@ export class AnimationController {
   setSun(sunGroup, rotationPeriod) {
     this.sunBody = {
       group: sunGroup,
-      rotationPeriod: rotationPeriod || 25
+      rotationPeriod: rotationPeriod || 25,
     }
   }
 
@@ -54,7 +54,7 @@ export class AnimationController {
       group,
       orbitParams,
       angle: Math.random() * Math.PI * 2,
-      isMoon: false
+      isMoon: false,
     }
 
     const initialPos = this.orbitCalc.getPositionAtAngle(orbitParams, body.angle)
@@ -76,7 +76,7 @@ export class AnimationController {
       orbitParams,
       angle: Math.random() * Math.PI * 2,
       isMoon: true,
-      parentName
+      parentName,
     }
 
     const initialPos = this.orbitCalc.getPositionAtAngle(orbitParams, body.angle)
@@ -90,7 +90,7 @@ export class AnimationController {
   }
 
   reset() {
-    this.bodies.forEach(body => {
+    this.bodies.forEach((body) => {
       body.angle = Math.random() * Math.PI * 2
       const pos = this.orbitCalc.getPositionAtAngle(body.orbitParams, body.angle)
       body.group.position.set(pos.x, 0, pos.z)
@@ -143,13 +143,13 @@ export class AnimationController {
       this.sunBody.group.rotation.y += sunRotSpeed * scaledDt
     }
 
-    this.bodies.forEach(body => {
+    this.bodies.forEach((body) => {
       body.angle = this.orbitCalc.stepAngle(body.orbitParams, body.angle, scaledDt)
 
       const pos = this.orbitCalc.getPositionAtAngle(body.orbitParams, body.angle)
       body.group.position.set(pos.x, 0, pos.z)
 
-      body.group.children.forEach(child => {
+      body.group.children.forEach((child) => {
         if (child.isMesh) {
           child.rotation.y += body.orbitParams.scaledRotationSpeed * scaledDt
         }
@@ -167,7 +167,7 @@ export class AnimationController {
 
   dispose() {
     this.stop()
-    this._eventHandlers.forEach(unbind => unbind && unbind())
+    this._eventHandlers.forEach((unbind) => unbind && unbind())
     this._eventHandlers = []
     this.bodies.clear()
     this.sunBody = null

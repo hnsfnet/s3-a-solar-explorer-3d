@@ -11,7 +11,7 @@ const PLANETS_DATA = [
     eccentricity: 0.206,
     mass: 0.055,
     surfaceTemp: 167,
-    description: '太阳系中最小的行星，也是距离太阳最近的行星。'
+    description: '太阳系中最小的行星，也是距离太阳最近的行星。',
   },
   {
     name: 'Venus',
@@ -25,7 +25,7 @@ const PLANETS_DATA = [
     eccentricity: 0.007,
     mass: 0.815,
     surfaceTemp: 464,
-    description: '太阳系中最热的行星，表面温度可达 465°C。'
+    description: '太阳系中最热的行星，表面温度可达 465°C。',
   },
   {
     name: 'Earth',
@@ -39,7 +39,7 @@ const PLANETS_DATA = [
     eccentricity: 0.017,
     mass: 1,
     surfaceTemp: 15,
-    description: '我们的家园，目前已知唯一存在生命的星球。'
+    description: '我们的家园，目前已知唯一存在生命的星球。',
   },
   {
     name: 'Mars',
@@ -53,7 +53,7 @@ const PLANETS_DATA = [
     eccentricity: 0.093,
     mass: 0.107,
     surfaceTemp: -65,
-    description: '红色星球，人类探索的下一个目标。'
+    description: '红色星球，人类探索的下一个目标。',
   },
   {
     name: 'Jupiter',
@@ -67,7 +67,7 @@ const PLANETS_DATA = [
     eccentricity: 0.049,
     mass: 317.8,
     surfaceTemp: -110,
-    description: '太阳系最大的行星，质量是其他行星总和的 2.5 倍。'
+    description: '太阳系最大的行星，质量是其他行星总和的 2.5 倍。',
   },
   {
     name: 'Saturn',
@@ -81,7 +81,7 @@ const PLANETS_DATA = [
     eccentricity: 0.057,
     mass: 95.2,
     surfaceTemp: -140,
-    description: '以其壮观的光环系统而闻名，密度比水还小。'
+    description: '以其壮观的光环系统而闻名，密度比水还小。',
   },
   {
     name: 'Uranus',
@@ -95,7 +95,7 @@ const PLANETS_DATA = [
     eccentricity: 0.046,
     mass: 14.5,
     surfaceTemp: -195,
-    description: '自转轴倾斜 98 度，几乎是"躺着"公转的行星。'
+    description: '自转轴倾斜 98 度，几乎是"躺着"公转的行星。',
   },
   {
     name: 'Neptune',
@@ -109,8 +109,8 @@ const PLANETS_DATA = [
     eccentricity: 0.011,
     mass: 17.1,
     surfaceTemp: -200,
-    description: '太阳系最远的行星，风速可达 2100 km/h。'
-  }
+    description: '太阳系最远的行星，风速可达 2100 km/h。',
+  },
 ]
 
 const SUN_DATA = {
@@ -120,7 +120,7 @@ const SUN_DATA = {
   color: 0xffdd00,
   mass: 333000,
   surfaceTemp: 5500,
-  description: '太阳系的中心恒星，占太阳系总质量的 99.86%。'
+  description: '太阳系的中心恒星，占太阳系总质量的 99.86%。',
 }
 
 const MOONS_DATA = [
@@ -136,7 +136,7 @@ const MOONS_DATA = [
     eccentricity: 0.055,
     mass: 0.0123,
     surfaceTemp: -20,
-    description: '地球唯一的天然卫星，是人类探索的第一个地外天体。'
+    description: '地球唯一的天然卫星，是人类探索的第一个地外天体。',
   },
   {
     name: 'Io',
@@ -150,7 +150,7 @@ const MOONS_DATA = [
     eccentricity: 0.004,
     mass: 0.015,
     surfaceTemp: -143,
-    description: '木星的四颗伽利略卫星之一，太阳系中火山活动最活跃的天体。'
+    description: '木星的四颗伽利略卫星之一，太阳系中火山活动最活跃的天体。',
   },
   {
     name: 'Europa',
@@ -164,7 +164,7 @@ const MOONS_DATA = [
     eccentricity: 0.009,
     mass: 0.008,
     surfaceTemp: -170,
-    description: '木星的四颗伽利略卫星之一，冰层下可能存在液态水海洋。'
+    description: '木星的四颗伽利略卫星之一，冰层下可能存在液态水海洋。',
   },
   {
     name: 'Ganymede',
@@ -178,7 +178,7 @@ const MOONS_DATA = [
     eccentricity: 0.001,
     mass: 0.025,
     surfaceTemp: -160,
-    description: '木星的四颗伽利略卫星之一，太阳系中最大的卫星。'
+    description: '木星的四颗伽利略卫星之一，太阳系中最大的卫星。',
   },
   {
     name: 'Callisto',
@@ -192,7 +192,7 @@ const MOONS_DATA = [
     eccentricity: 0.007,
     mass: 0.018,
     surfaceTemp: -139,
-    description: '木星的四颗伽利略卫星之一，表面布满撞击坑，是太阳系中最古老的表面之一。'
+    description: '木星的四颗伽利略卫星之一，表面布满撞击坑，是太阳系中最古老的表面之一。',
   },
   {
     name: 'Titan',
@@ -206,22 +206,23 @@ const MOONS_DATA = [
     eccentricity: 0.029,
     mass: 0.0225,
     surfaceTemp: -180,
-    description: '土星最大的卫星，太阳系中唯一拥有浓厚大气层的卫星，表面存在液态甲烷湖泊。'
-  }
+    description: '土星最大的卫星，太阳系中唯一拥有浓厚大气层的卫星，表面存在液态甲烷湖泊。',
+  },
 ]
 
 const SCALE_FACTORS = {
-  SIZE_SCALE: 0.00005,
-  DISTANCE_SCALE: 0.008,
-  TIME_SCALE: 0.001,
-  SIZE_MULTIPLIER: 8,
-  MOON_SIZE_MULTIPLIER: 15,
-  MOON_DISTANCE_SCALE: 2.5
+  SIZE_SCALE: Number(import.meta.env.VITE_SIZE_SCALE) || 0.00005,
+  DISTANCE_SCALE: Number(import.meta.env.VITE_DISTANCE_SCALE) || 0.008,
+  TIME_SCALE: Number(import.meta.env.VITE_TIME_SCALE) || 0.001,
+  SIZE_MULTIPLIER: Number(import.meta.env.VITE_SIZE_MULTIPLIER) || 8,
+  MOON_SIZE_MULTIPLIER: Number(import.meta.env.VITE_MOON_SIZE_MULTIPLIER) || 15,
+  MOON_DISTANCE_SCALE: Number(import.meta.env.VITE_MOON_DISTANCE_SCALE) || 2.5,
+  SUN_SIZE_RATIO: Number(import.meta.env.VITE_SUN_SIZE_RATIO) || 0.15,
 }
 
 export const DataStore = {
   getPlanets() {
-    return PLANETS_DATA.map(p => ({ ...p }))
+    return PLANETS_DATA.map((p) => ({ ...p }))
   },
 
   getSun() {
@@ -229,20 +230,20 @@ export const DataStore = {
   },
 
   getMoons() {
-    return MOONS_DATA.map(m => ({ ...m, isMoon: true }))
+    return MOONS_DATA.map((m) => ({ ...m, isMoon: true }))
   },
 
   getMoonsByParent(parentName) {
-    return this.getMoons().filter(m => m.parentName === parentName)
+    return this.getMoons().filter((m) => m.parentName === parentName)
   },
 
   getPlanetByName(name) {
-    const raw = PLANETS_DATA.find(p => p.name === name || p.nameCN === name)
+    const raw = PLANETS_DATA.find((p) => p.name === name || p.nameCN === name)
     return raw ? { ...raw } : null
   },
 
   getMoonByName(name) {
-    const raw = MOONS_DATA.find(m => m.name === name || m.nameCN === name)
+    const raw = MOONS_DATA.find((m) => m.name === name || m.nameCN === name)
     return raw ? { ...raw, isMoon: true } : null
   },
 
@@ -257,25 +258,25 @@ export const DataStore = {
   getAllBodies() {
     const bodies = []
     bodies.push({ ...this.getSun(), type: 'sun' })
-    this.getPlanets().forEach(p => bodies.push({ ...p, type: 'planet' }))
-    this.getMoons().forEach(m => bodies.push({ ...m, type: 'moon' }))
+    this.getPlanets().forEach((p) => bodies.push({ ...p, type: 'planet' }))
+    this.getMoons().forEach((m) => bodies.push({ ...m, type: 'moon' }))
     return bodies
   },
 
   searchBodies(query) {
     if (!query || query.trim() === '') return []
     const q = query.toLowerCase().trim()
-    return this.getAllBodies().filter(body =>
-      body.name.toLowerCase().includes(q) ||
-      body.nameCN.includes(q) ||
-      (body.parentName && (
-        body.parentName.toLowerCase().includes(q) ||
-        PLANETS_DATA.find(p => p.name === body.parentName)?.nameCN.includes(q)
-      ))
+    return this.getAllBodies().filter(
+      (body) =>
+        body.name.toLowerCase().includes(q) ||
+        body.nameCN.includes(q) ||
+        (body.parentName &&
+          (body.parentName.toLowerCase().includes(q) ||
+            PLANETS_DATA.find((p) => p.name === body.parentName)?.nameCN.includes(q))),
     )
   },
 
   getScaleFactors() {
     return { ...SCALE_FACTORS }
-  }
+  },
 }

@@ -35,7 +35,7 @@ export class EventBus {
     if (!this.events.has(event)) return
 
     const handlers = Array.from(this.events.get(event))
-    handlers.forEach(handler => {
+    handlers.forEach((handler) => {
       try {
         handler(...args)
       } catch (err) {

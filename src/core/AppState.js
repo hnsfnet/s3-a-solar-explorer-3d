@@ -28,14 +28,14 @@ function createReactiveState(target, eventBusInstance, path = '') {
         key,
         oldValue,
         newValue: value,
-        state: obj
+        state: obj,
       })
 
       eventBusInstance.emit(`${STATE_CHANGE_EVENT}:${fullPath}`, {
         path: fullPath,
         key,
         oldValue,
-        newValue: value
+        newValue: value,
       })
 
       return true
@@ -53,40 +53,40 @@ function createReactiveState(target, eventBusInstance, path = '') {
         key,
         oldValue,
         newValue: undefined,
-        state: obj
+        state: obj,
       })
 
       eventBusInstance.emit(`${STATE_CHANGE_EVENT}:${fullPath}`, {
         path: fullPath,
         key,
         oldValue,
-        newValue: undefined
+        newValue: undefined,
       })
 
       return true
-    }
+    },
   })
 }
 
 const defaultState = {
   selection: {
     selectedBody: null,
-    compareTargets: []
+    compareTargets: [],
   },
   time: {
-    timeScale: 1,
-    isPaused: false
+    timeScale: Number(import.meta.env.VITE_DEFAULT_TIME_SPEED) || 1,
+    isPaused: false,
   },
   camera: {
     targetBody: null,
-    isAnimating: false
+    isAnimating: false,
   },
   ui: {
     infoPanelVisible: false,
     comparePanelVisible: false,
     searchOpen: false,
-    searchQuery: ''
-  }
+    searchQuery: '',
+  },
 }
 
 class AppStateManager {
@@ -174,7 +174,7 @@ class AppStateManager {
 
   reset() {
     const fresh = JSON.parse(JSON.stringify(defaultState))
-    Object.keys(this._state).forEach(key => {
+    Object.keys(this._state).forEach((key) => {
       delete this._state[key]
     })
     Object.assign(this._state, fresh)

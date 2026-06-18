@@ -1,5 +1,4 @@
 import { UIComponent } from './UIComponent.js'
-import { DataStore } from '../core/DataStore.js'
 
 export class InfoPanel extends UIComponent {
   constructor() {
@@ -70,7 +69,7 @@ export class InfoPanel extends UIComponent {
   render(bodyData) {
     if (!bodyData) return
 
-    const colorHex = '#' + bodyData.color.toString(16).padStart(6, '0')
+    const colorHex = `#${bodyData.color.toString(16).padStart(6, '0')}`
 
     const colorDot = this.element.querySelector('.info-panel__color')
     colorDot.style.backgroundColor = colorHex
@@ -102,13 +101,13 @@ export class InfoPanel extends UIComponent {
     this.element.querySelector('.info-panel__description').textContent = bodyData.description
 
     this.element.querySelector('.stat-diameter').textContent =
-      this.formatNumber(bodyData.diameter) + ' km'
+      `${this.formatNumber(bodyData.diameter)} km`
 
-    this.element.querySelector('.stat-mass').textContent =
-      this.formatMass(bodyData.mass)
+    this.element.querySelector('.stat-mass').textContent = this.formatMass(bodyData.mass)
 
-    this.element.querySelector('.stat-temperature').textContent =
-      this.formatTemp(bodyData.surfaceTemp)
+    this.element.querySelector('.stat-temperature').textContent = this.formatTemp(
+      bodyData.surfaceTemp,
+    )
 
     if (bodyData.name === 'Sun' || bodyData.type === 'sun') {
       this.element.querySelector('.stat-distance').textContent = '—'
@@ -118,18 +117,22 @@ export class InfoPanel extends UIComponent {
     } else if (bodyData.isMoon) {
       this.element.querySelector('.stat-distance').textContent =
         `${bodyData.distanceFromParent?.toFixed(3) || '?'} 百万 km (距${bodyData.parentName})`
-      this.element.querySelector('.stat-orbital').textContent =
-        this.formatOrbitalPeriod(bodyData.orbitalPeriod)
-      this.element.querySelector('.stat-rotation').textContent =
-        this.formatRotationPeriod(bodyData.rotationPeriod)
+      this.element.querySelector('.stat-orbital').textContent = this.formatOrbitalPeriod(
+        bodyData.orbitalPeriod,
+      )
+      this.element.querySelector('.stat-rotation').textContent = this.formatRotationPeriod(
+        bodyData.rotationPeriod,
+      )
       this.element.querySelector('.stat-eccentricity').textContent = '—'
     } else {
       this.element.querySelector('.stat-distance').textContent =
-        this.formatNumber(bodyData.distance) + ' 百万 km'
-      this.element.querySelector('.stat-orbital').textContent =
-        this.formatOrbitalPeriod(bodyData.orbitalPeriod)
-      this.element.querySelector('.stat-rotation').textContent =
-        this.formatRotationPeriod(bodyData.rotationPeriod)
+        `${this.formatNumber(bodyData.distance)} 百万 km`
+      this.element.querySelector('.stat-orbital').textContent = this.formatOrbitalPeriod(
+        bodyData.orbitalPeriod,
+      )
+      this.element.querySelector('.stat-rotation').textContent = this.formatRotationPeriod(
+        bodyData.rotationPeriod,
+      )
       this.element.querySelector('.stat-eccentricity').textContent =
         bodyData.eccentricity.toFixed(3)
     }
@@ -142,9 +145,9 @@ export class InfoPanel extends UIComponent {
   formatMass(mass) {
     if (mass == null) return '—'
     if (mass >= 1000) {
-      return (mass / 1000).toFixed(2) + ' × 10³ M⊕'
+      return `${(mass / 1000).toFixed(2)} × 10³ M⊕`
     }
-    return mass.toFixed(3) + ' M⊕'
+    return `${mass.toFixed(3)} M⊕`
   }
 
   formatTemp(celsius) {

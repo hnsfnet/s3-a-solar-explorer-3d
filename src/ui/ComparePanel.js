@@ -1,6 +1,5 @@
 import { Chart, registerables } from 'chart.js'
 import { UIComponent } from './UIComponent.js'
-import { DataStore } from '../core/DataStore.js'
 
 Chart.register(...registerables)
 
@@ -71,8 +70,8 @@ export class ComparePanel extends UIComponent {
               font: { family: 'Inter, sans-serif', size: 12 },
               padding: 16,
               usePointStyle: true,
-              pointStyle: 'circle'
-            }
+              pointStyle: 'circle',
+            },
           },
           tooltip: {
             backgroundColor: 'rgba(15, 15, 35, 0.95)',
@@ -83,28 +82,29 @@ export class ComparePanel extends UIComponent {
             padding: 12,
             cornerRadius: 8,
             callbacks: {
-              label: (context) => ` ${context.dataset.label}: ${context.raw.toLocaleString('zh-CN')}`
-            }
-          }
+              label: (context) =>
+                ` ${context.dataset.label}: ${context.raw.toLocaleString('zh-CN')}`,
+            },
+          },
         },
         scales: {
           x: {
             grid: { color: 'rgba(255, 255, 255, 0.05)' },
             ticks: {
               color: '#606080',
-              font: { family: 'Inter, sans-serif', size: 10 }
+              font: { family: 'Inter, sans-serif', size: 10 },
             },
-            type: 'logarithmic'
+            type: 'logarithmic',
           },
           y: {
             grid: { display: false },
             ticks: {
               color: '#a0a0c0',
-              font: { family: 'Inter, sans-serif', size: 12 }
-            }
-          }
-        }
-      }
+              font: { family: 'Inter, sans-serif', size: 12 },
+            },
+          },
+        },
+      },
     })
   }
 
@@ -117,22 +117,28 @@ export class ComparePanel extends UIComponent {
 
     bodies.forEach((body, i) => {
       bodyNames[i].textContent = body.nameCN
-      bodyDots[i].style.backgroundColor = '#' + body.color.toString(16).padStart(6, '0')
+      bodyDots[i].style.backgroundColor = `#${body.color.toString(16).padStart(6, '0')}`
     })
 
-    const labels = ['直径 (km)', '质量 (地球=1)', '公转周期 (天)', '自转周期 (天)', '表面温度 (开尔文)']
+    const labels = [
+      '直径 (km)',
+      '质量 (地球=1)',
+      '公转周期 (天)',
+      '自转周期 (天)',
+      '表面温度 (开尔文)',
+    ]
 
     const getValueOrFallback = (val, fallback = 1) =>
-      (val != null && val !== undefined && !isNaN(val)) ? val : fallback
+      val != null && val !== undefined && !isNaN(val) ? val : fallback
 
-    const tempToKelvin = (c) => c != null ? c + 273 : 288
+    const tempToKelvin = (c) => (c != null ? c + 273 : 288)
 
     const valuesA = [
       getValueOrFallback(bodyA.diameter),
       getValueOrFallback(bodyA.mass),
       getValueOrFallback(bodyA.orbitalPeriod),
       getValueOrFallback(bodyA.rotationPeriod),
-      tempToKelvin(bodyA.surfaceTemp)
+      tempToKelvin(bodyA.surfaceTemp),
     ]
 
     const valuesB = [
@@ -140,21 +146,21 @@ export class ComparePanel extends UIComponent {
       getValueOrFallback(bodyB.mass),
       getValueOrFallback(bodyB.orbitalPeriod),
       getValueOrFallback(bodyB.rotationPeriod),
-      tempToKelvin(bodyB.surfaceTemp)
+      tempToKelvin(bodyB.surfaceTemp),
     ]
 
-    const makeDataset = (body, values, idx) => ({
+    const makeDataset = (body, values, _idx) => ({
       label: body.nameCN,
       data: values,
-      backgroundColor: '#' + body.color.toString(16).padStart(6, '0') + 'cc',
-      borderColor: '#' + body.color.toString(16).padStart(6, '0'),
+      backgroundColor: `#${body.color.toString(16).padStart(6, '0')}cc`,
+      borderColor: `#${body.color.toString(16).padStart(6, '0')}`,
       borderWidth: 1,
-      borderRadius: 4
+      borderRadius: 4,
     })
 
     this.chart.data = {
       labels,
-      datasets: [makeDataset(bodyA, valuesA, 0), makeDataset(bodyB, valuesB, 1)]
+      datasets: [makeDataset(bodyA, valuesA, 0), makeDataset(bodyB, valuesB, 1)],
     }
 
     this.chart.update()

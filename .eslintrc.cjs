@@ -1,0 +1,47 @@
+/* eslint-env node */
+module.exports = {
+  root: true,
+  env: {
+    browser: true,
+    es2022: true,
+    node: true,
+  },
+  extends: [
+    'airbnb-base',
+    'plugin:prettier/recommended',
+  ],
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+  },
+  rules: {
+    'prettier/prettier': 'error',
+    'import/extensions': 'off',
+    'import/no-unresolved': 'off',
+    'import/prefer-default-export': 'off',
+    'no-console': ['warn', { allow: ['warn', 'error', 'log'] }],
+    'no-underscore-dangle': 'off',
+    'class-methods-use-this': 'off',
+    'no-param-reassign': 'off',
+    'no-plusplus': 'off',
+    'no-bitwise': 'off',
+    'max-classes-per-file': 'off',
+    'prefer-destructuring': 'off',
+    'prefer-template': 'warn',
+    'object-shorthand': 'warn',
+    'no-use-before-define': ['error', { functions: false, classes: false }],
+    'consistent-return': 'off',
+    'no-restricted-syntax': 'off',
+    'guard-for-in': 'off',
+    'no-lonely-if': 'off',
+    'no-nested-ternary': 'off',
+    'no-restricted-globals': 'off',
+    'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+  },
+  ignorePatterns: [
+    'dist',
+    'node_modules',
+    '*.config.cjs',
+    '*.config.js',
+  ],
+}
